@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const CollegeModel = require('../model/collegeModel')
 const InternModel = require('../model/internModel')
 
 //--------------------------[regex]----------------------------//
@@ -13,12 +13,30 @@ const mobileRegex = /[6789][0-9]{9}/
 
 const createInterns = async function (req, res) {
     try {
+
+        res.setHeader('Access-Control-Allow-Origin', '*')
+
         let data = req.body
-        let { name, email, mobile, collegeId } = data
+        let { name, email, mobile, collegeName } = data
 
         if (!Object.keys(data).length === 0) {
             return res.status(400).send({ status: false, msg: "Please provide all the Details!" })
         }
+
+        if (!collegeName || collegeName === "") {
+            return res.status(400).send({ status: false, msg: "Please provide collegeName!" })
+        }
+        collegeName = collegeName.trim().toLowerCase()
+        if (!nameRegex.test(collegeName)) {
+            return res.status(400).send({ status: false, msg: "Please enter valid collegeName" })
+        }
+
+        let college = await CollegeModel.findOne({ collegeName: collegeName, isDeleted: false })
+        if (!college) {
+            return res.status(404).send({ status: false, message: "College Not Found!" })
+        }
+        data.collegeId = college._id
+
 
         if (!name || name == "") {
             return res.status(400).send({ status: false, msg: "Please provide name!" })
@@ -42,14 +60,6 @@ const createInterns = async function (req, res) {
         mobile = mobile.trim()
         if (!mobileRegex.test(mobile)) {
             return res.status(400).send({ status: false, msg: "Please provide correct mobile number!" })
-        }
-
-        if(!collegeId || collegeId == "") {
-            return res.status(400).send({status: false, msg: "Please provide college id!"})
-        }
-        collegeId = collegeId.trim()
-        if (!mongoose.Types.ObjectId.isValid(collegeId)) {
-            return res.status(400).send({ status: false, msg: "Please provide valid collegeId!"})
         }
 
         let savedData = await InternModel.create(data)
