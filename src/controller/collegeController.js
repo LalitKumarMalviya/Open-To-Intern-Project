@@ -14,19 +14,20 @@ let logoLinkRegex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/(
 const createColleges = async function (req, res) {
 
     try {
+        res.setHeader('Access-Control-Allow-Origin', '*')
         let data = req.body
-        let { name, fullName, logoLink } = data
+        let { collegeName, fullName, logoLink } = data
 
         if (Object.keys(data).length === 0) {
             return res.status(400).send({ status: false, msg: "Please provide all the details!" })
         }
 
-        if (!name || name == "") {
-            return res.status(400).send({ status: false, msg: "Please provide name!" })
+        if (!collegeName || collegeName == "") {
+            return res.status(400).send({ status: false, msg: "Please provide collegeName!" })
         }
-        name = name.trim()
-        if (!nameRegex.test(name)) {
-            return res.status(400).send({ status: false, msg: "Please enter valid name" })
+        collegeName = collegeName.trim()
+        if (!nameRegex.test(collegeName)) {
+            return res.status(400).send({ status: false, msg: "Please enter valid collegeName" })
         }
 
         if (!fullName || fullName == "") {
@@ -60,13 +61,14 @@ const createColleges = async function (req, res) {
 const getCollegeDetails = async function (req, res) {
 
     try {
-        let collegeName = req.query.name
+        res.setHeader('Access-Control-Allow-Origin', '*')
+        let collegeName = req.query.collegeName
 
         if (!collegeName || collegeName == "") {
             return res.status(400).send({ status: false, msg: "Please provide name in query" })
         }
 
-        let collegeData = await CollegeModel.findOne({ name: collegeName, isDeleted: false })
+        let collegeData = await CollegeModel.findOne({ collegeName: collegeName, isDeleted: false })
         if (!collegeData) {
             return res.status(404).send({ status: false, msg: `data is not found ${collegeData} college` })
         }
@@ -78,7 +80,10 @@ const getCollegeDetails = async function (req, res) {
             return res.status(404).send({ status: false, msg: "Interns data are not found" })
         }
 
-        res.status(200).send({ status: true, data: collegeData, interns: internsData })
+        let setData = collegeData.toObject()
+        setData.interns = internsData
+
+        res.status(200).send({ status: true, data: setData })
 
     } catch (err) {
         console.log("This is an error", err.message)

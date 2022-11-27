@@ -4,7 +4,7 @@ const mongoose = require('mongoose')
 
 const collegeSchema = new mongoose.Schema({
 
-    name: {
+    collegeName: {
         type: String,
         required: true,
         unique: true,
